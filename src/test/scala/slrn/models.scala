@@ -1,8 +1,8 @@
 package slrn.model
 
 import slrn.feature._
-
 import org.scalatest.FunSuite
+import slrn.weights.{VocabWeights, VocabularyIndexer}
 
 
 class ModelTest extends FunSuite {
@@ -17,17 +17,17 @@ class ModelTest extends FunSuite {
   val bad = CategoricFeature("signal", "red")(1.0)
   val good = CategoricFeature("signal", "green")(1.0)
 
-  val m: Model = new DictionaryWeights()
-  m.setWeight(ftr1, 2.0)
-  m.setWeight(red, 1.0)
-  m.setWeight(green, -5.0)
-  m.setWeight(bad, -10.0)
-  m.setWeight(good, 7.0)
+  val m = new VocabWeights(new VocabularyIndexer) with LogisticPrediction
+  m(ftr1) = 2.0
+  m(red) = 1.0
+  m(green) = -5.0
+  m(bad) = -10.0
+  m(good) = 7.0
 
   test("dot product should work properly") {
-    assert(math.abs(m.weight(ftr1) - 2.0) < epsilon)
-    assert(math.abs(m.weight(red) - 1.0) < epsilon)
-    assert(math.abs(m.weight(blue) - 0.0) < epsilon)
+    assert(math.abs(m(ftr1) - 2.0) < epsilon)
+    assert(math.abs(m(red) - 1.0) < epsilon)
+    assert(math.abs(m(blue) - 0.0) < epsilon)
 
     assert(math.abs(m.dot(Set(ftr2, blue)) - 0.0) < epsilon)
     assert(math.abs(m.dot(Set(ftr1, green, blue)) - (-1.0)) < epsilon)

@@ -3,7 +3,10 @@ package slrn.runner
 import java.io.{FileOutputStream, PrintWriter}
 
 import slrn.feature.CategoricFeature
-import slrn.model.{AdaDelta, MiniBatch}
+import slrn.weights.{HashIndexer, HashWeights}
+//import slrn.model.{AdaDelta, MiniBatch}
+import slrn.weights.{VocabWeights, VocabularyIndexer}
+import slrn.model.LogisticPrediction
 
 object RunSimpleSGD {
 
@@ -14,10 +17,12 @@ object RunSimpleSGD {
 
     val debugWriter = new PrintWriter("debug.tsv")
 
-    val model = new slrn.model.DictionaryWeights()
-    //val learner = new slrn.model.ConstantStepSGD(learningRate=0.03, model=model)
+    //val model = new slrn.model.DictionaryWeights()
+    //val model = new VocabWeights(new VocabularyIndexer) with LogisticPrediction
+    val model = new HashWeights(new HashIndexer(10000)) with LogisticPrediction
+    val learner = new slrn.model.ConstantStepSGD(learningRate=0.03, model=model)
     //val learner = new MiniBatch(10, new slrn.model.ConstantStepSGD(learningRate=0.1, model=model))
-    val learner = new slrn.model.LocalVarSGD(model)
+    //val learner = new slrn.model.LocalVarSGD(model)
     //val learner = new MiniBatch(10, new slrn.model.LocalVarSGD(model))
     //val learner = new AdaDelta(model)
 
@@ -64,7 +69,7 @@ object RunSimpleSGD {
     pw.close()
     debugWriter.close()
 
-    model.save(new FileOutputStream(outModelFnm))
+    //model.save(new FileOutputStream(outModelFnm))
 
   }
 
