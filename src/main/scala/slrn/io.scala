@@ -6,9 +6,9 @@ import scala.io.Source
 
 package object io {
 
-  def examples(source: Source): Iterator[(Int, Set[Feature])] = source.getLines().map(parseLine)
+  def examples(source: Source): Iterator[(Double, Set[Feature])] = source.getLines().map(parseLine)
 
-  private def parseLine(line: String): (Int, Set[Feature]) = {
+  private def parseLine(line: String): (Double, Set[Feature]) = {
     val cols = line.split("\t").map(_.trim)
     require(cols.length > 0)
     val label = cols(0).toInt

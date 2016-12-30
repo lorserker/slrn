@@ -39,12 +39,15 @@ class FeatureIndexerTest extends FunSuite {
 class WeightsTest extends FunSuite {
 
   test("weights should work properly") {
-    val w: Weights = new CompositeWeights(
-      defaultWeights = new VocabWeights(new VocabularyIndexer),
-      namedWeights = Map[String, Weights](
-        "color" -> new VocabWeights(new VocabularyIndexer),
-        "size" -> new HashWeights(new HashIndexer(10))
-      )
+    val w: Weights = BlockWeights(
+      weightBlocks = Array(
+        VocabWeights(new VocabularyIndexer),
+        HashWeights(new HashIndexer(10))
+      ),
+      defaultWeights = VocabWeights(new VocabularyIndexer),
+      ftr2block = (ftr: Feature) => {
+        Map("color" -> 0, "size" -> 1).getOrElse(ftr.name, -1)
+      }
     )
 
     assert(w(NumericFeature("bla")(1.0)) == 0.0)
@@ -68,19 +71,69 @@ class WeightsTest extends FunSuite {
 
   test("initial values should work for weights") {
     val initVal = 0.1
-    val vocabWeights = new VocabWeights(new VocabularyIndexer, initVal)
+    val vocabWeights = VocabWeights(new VocabularyIndexer, initVal)
     val newFtr = NumericFeature("bla")(1.0)
     assert(vocabWeights(newFtr) == initVal)
-    val hashWeights = new HashWeights(new HashIndexer(10), initVal)
+    val hashWeights = HashWeights(new HashIndexer(10), initVal)
     assert(hashWeights(newFtr) == initVal)
   }
 
   test("hash weights should collide") {
-    val w = new HashWeights(new HashIndexer(1))
+    val w = HashWeights(new HashIndexer(1))
     val ftr1 = NumericFeature("foo")(1.0)
     assert(w(ftr1) == 0.0)
     w(ftr1) = 7.0
     val ftr2 = CategoricFeature("bar", "bla")(1.0)
     assert(w(ftr2) == 7.0)
+  }
+
+  test("one vocab indexers can be shared by several weights") {
+    val ixer = new VocabularyIndexer
+
+    val w1 = VocabWeights(ixer, 0.0)
+    val w2 = VocabWeights(ixer, 0.0)
+
+    val ftrs = Seq("red", "green", "blue").map(color => NumericFeature(color)(1.0))
+    for ((ftr, i) <- ftrs.zipWithIndex) {
+      w1(ftr) = i+1
+    }
+
+    w2(ftrs(2)) = 11.0
+
+    assert(w2(ftrs(2)) == 11.0)
+  }
+
+  test("createInitLike should work for block weights") {
+    val w: Weights = BlockWeights(
+      weightBlocks = Array(
+        VocabWeights(new VocabularyIndexer, 1.0),
+        HashWeights(new HashIndexer(10), 2.0)
+      ),
+      defaultWeights = VocabWeights(new VocabularyIndexer, 3.0),
+      ftr2block = (ftr: Feature) => {
+        Map("color" -> 0, "size" -> 1).getOrElse(ftr.name, -1)
+      }
+    )
+
+    assert(w(NumericFeature("color")(1.0)) == 1.0)
+    assert(w(NumericFeature("size")(1.0)) == 2.0)
+    assert(w(NumericFeature("foo")(1.0)) == 3.0)
+
+    val newWeights = Weights.createInitLike(w, 10.0)
+    assert(newWeights(NumericFeature("color")(1.0)) == 10.0)
+    assert(newWeights(NumericFeature("size")(1.0)) == 10.0)
+    assert(newWeights(NumericFeature("foo")(1.0)) == 10.0)
+  }
+
+  test("block weights objects should be unique") {
+    val w1 = VocabWeights(new VocabularyIndexer)
+    val w2 = HashWeights(new HashIndexer(10))
+    val w3 = HashWeights(new HashIndexer(20))
+    assertThrows[Exception](BlockWeights(Array(w1, w2, w3), w2, (ftr: Feature) => 0))
+    assertThrows[Exception](BlockWeights(Array(w1, w2, w1), w3, (ftr: Feature) => 0))
+    assertThrows[Exception](BlockWeights(Array(w1), w1, (ftr: Feature) => 0))
+
+    // this should not throw any exception
+    BlockWeights(Array(w1, w2), w3, (ftr: Feature) => 0)
   }
 }

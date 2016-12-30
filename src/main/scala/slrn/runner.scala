@@ -2,10 +2,9 @@ package slrn.runner
 
 import java.io.{FileOutputStream, PrintWriter}
 
-import slrn.feature.CategoricFeature
-import slrn.weights.{HashIndexer, HashWeights}
-//import slrn.model.{AdaDelta, MiniBatch}
-import slrn.weights.{VocabWeights, VocabularyIndexer}
+import slrn.feature.{CategoricFeature, Feature}
+import slrn.weights._
+import slrn.model.MiniBatch
 import slrn.model.LogisticPrediction
 
 object RunSimpleSGD {
@@ -17,9 +16,17 @@ object RunSimpleSGD {
 
     val debugWriter = new PrintWriter("debug.tsv")
 
+    val appdWeights = new VocabWeights(new VocabularyIndexer)
+    val brandWeights = new VocabWeights(new VocabularyIndexer)
+    val defaultWeights = new HashWeights(new HashIndexer(100000))
+
+    def ftr2block(ftr: Feature): Int = Map("cust_appd" -> 0, "brand" -> 1).getOrElse(ftr.name, -1)
+
+    //val model = new BlockWeights(Array(appdWeights, brandWeights), defaultWeights, ftr2block) with LogisticPrediction
+
     //val model = new slrn.model.DictionaryWeights()
-    //val model = new VocabWeights(new VocabularyIndexer) with LogisticPrediction
-    val model = new HashWeights(new HashIndexer(10000)) with LogisticPrediction
+    val model = new VocabWeights(new VocabularyIndexer) with LogisticPrediction
+    //val model = new HashWeights(new HashIndexer(100000)) with LogisticPrediction
     val learner = new slrn.model.ConstantStepSGD(learningRate=0.03, model=model)
     //val learner = new MiniBatch(10, new slrn.model.ConstantStepSGD(learningRate=0.1, model=model))
     //val learner = new slrn.model.LocalVarSGD(model)
@@ -31,8 +38,6 @@ object RunSimpleSGD {
         println(i)
       }
 
-      //if (i > 100) return
-
       val segmentFtrArray = ftrs.filter(_.name == "cust_appd").toArray
       val segment = segmentFtrArray(0).asInstanceOf[CategoricFeature].nominal
 
@@ -40,37 +45,11 @@ object RunSimpleSGD {
 
       pw.println(s"$label\t${p}\t${segment}")
 
-//      if (segment == "ec#1" && label == 0) {
-//        if (math.random < 0.1) {
-//          learner.learn(label, ftrs)
-//        }
-//      } else {
-//        learner.learn(label, ftrs)
-//      }
-
       learner.learn(label, ftrs)
 
-//      for (ftr <- ftrs) {
-//
-//        val row = List(
-//          label.toString,
-//          p.toString,
-//          ftr.asInstanceOf[CategoricFeature].nominal,
-//          learner.gStats.avgGradient(ftr).toString,
-//          learner.gStats.avgSquareGradient(ftr).toString,
-//          learner.gStats.avgDiagHess(ftr).toString,
-//          learner.gStats.memory(ftr).toString,
-//          learner.gStats.learningRate(ftr).toString
-//        )
-//        debugWriter.println(row.mkString("\t"))
-//      }
     }
 
     pw.close()
     debugWriter.close()
-
-    //model.save(new FileOutputStream(outModelFnm))
-
   }
-
 }

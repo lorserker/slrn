@@ -2,7 +2,6 @@ package slrn.weights
 
 import slrn.feature.Feature
 import collection.mutable
-import scala.util.hashing.MurmurHash3
 
 trait FeatureIndexer {
   def apply(ftr: Feature): Int
@@ -20,7 +19,6 @@ class VocabularyIndexer extends FeatureIndexer {
     } else {
       val i = vocab.size
       vocab(ftr) = i
-      assert(vocab.size == i+1)
       i
     }
   }
@@ -28,7 +26,7 @@ class VocabularyIndexer extends FeatureIndexer {
 
 class HashIndexer(val n: Int) extends FeatureIndexer {
   override def apply(ftr: Feature): Int = {
-    val hashLong = MurmurHash3.productHash(ftr).toLong + Int.MaxValue + 1
+    val hashLong = ftr.hashCode.toLong + Int.MaxValue + 1
     (hashLong % n).toInt
   }
 }
@@ -43,60 +41,83 @@ trait Weights {
 object Weights {
   def createInitLike(weights: Weights, initVal: Double = 0.0): Weights = {
       weights match {
-        case CompositeWeights(dWgts, nmWgts, _) => CompositeWeights(
-          Weights.createInitLike(dWgts, initVal),
-          nmWgts.map{case (k, v) => (k, Weights.createInitLike(v, initVal))},
-          initVal
-        )
+        case BlockWeights(wBlocks, dWeights, ftr2block) => {
+          val newWBlocks = wBlocks.map(wgts => Weights.createInitLike(wgts, initVal))
+          BlockWeights(newWBlocks, Weights.createInitLike(dWeights, initVal), ftr2block)
+        }
         case VocabWeights(ixer, _) => VocabWeights(ixer, initVal)
         case HashWeights(ixer, _) => HashWeights(ixer, initVal)
       }
   }
 }
 
-case class CompositeWeights(defaultWeights: Weights, namedWeights: Map[String, Weights], initVal: Double = 0.0) extends  Weights {
+case class BlockWeights(weightBlocks: Array[Weights], defaultWeights: Weights, ftr2block: Feature => Int) extends Weights {
+  // require that each weights object reference (in weightBlocks and defaultWeights) be unique
+  val weightsNotUnique = {
+    (weightBlocks.length == 1 && (defaultWeights eq weightBlocks(0))) ||
+    (for {
+      i <- 0 until weightBlocks.length - 1
+      j <- i + 1 until weightBlocks.length
+    } yield {
+      (defaultWeights eq weightBlocks(i)) || (defaultWeights eq weightBlocks(j)) || (weightBlocks(i) eq weightBlocks(j))
+    }).reduce(_ || _)
+  }
+  require(!weightsNotUnique, "all Weights objects in a BlockWeights should be unique")
+
   override def apply(ftr: Feature): Double = {
-    namedWeights.getOrElse(ftr.name, defaultWeights)(ftr)
+    val blockIndex = ftr2block(ftr)
+    if (blockIndex < 0 || blockIndex >= weightBlocks.length) {
+      defaultWeights(ftr)
+    } else {
+      weightBlocks(blockIndex)(ftr)
+    }
   }
 
   override def update(ftr: Feature, w: Double): Unit = {
-    namedWeights.getOrElse(ftr.name, defaultWeights)(ftr) = w
+    val blockIndex = ftr2block(ftr)
+    if (blockIndex < 0 || blockIndex >= weightBlocks.length) {
+      defaultWeights(ftr) = w
+    } else {
+      weightBlocks(blockIndex)(ftr) = w
+    }
   }
 }
 
-case class VocabWeights(ixer: VocabularyIndexer, initVal: Double = 0.0) extends Weights {
-  private val storage = mutable.ArrayBuffer[Double]().padTo(ixer.size, initVal)
+case class VocabWeights(indexer: VocabularyIndexer, initVal: Double = 0.0) extends Weights {
+  private val storage = mutable.ArrayBuffer[Double]().padTo(indexer.size, initVal)
 
   def apply(ftr: Feature): Double = {
-    val i = ixer(ftr)
+    val i = indexer(ftr)
     if (i < storage.length) {
       storage(i)
     } else {
-      // we have a previously unseen feature
-      assert(i == storage.length)
-      storage.append(initVal)
-      initVal
+      extendStorage(i + 1)
+      storage(i)
     }
   }
 
   def update(ftr: Feature, w: Double): Unit = {
-    val i = ixer(ftr)
+    val i = indexer(ftr)
     if (i < storage.length) {
       storage(i) = w
     } else {
-      assert(i == storage.length)
-      storage.append(w)
+      extendStorage(i + 1)
+      storage(i) = w
     }
+  }
+
+  private def extendStorage(toLength: Int): Unit = {
+    val values = for (i <- storage.length until toLength) yield initVal
+    storage.append(values:_*)
   }
 }
 
-case class HashWeights(ixer: HashIndexer, initVal: Double = 0.0) extends Weights {
-  private val storage = (new Array[Double](ixer.n)).map(_ + initVal)
+case class HashWeights(indexer: HashIndexer, initVal: Double = 0.0) extends Weights {
+  private val storage = new Array[Double](indexer.n).map(_ + initVal)
 
-  def apply(ftr: Feature): Double = storage(ixer.apply(ftr))
+  def apply(ftr: Feature): Double = storage(indexer.apply(ftr))
 
   def update(ftr: Feature, w: Double): Unit = {
-    storage(ixer.apply(ftr)) = w
+    storage(indexer.apply(ftr)) = w
   }
-
 }
