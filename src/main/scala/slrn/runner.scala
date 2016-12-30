@@ -87,14 +87,14 @@ object CreditCardExample {
 
     val model = new VocabWeights(new VocabularyIndexer) with LogisticPrediction
 
-    //val learner = new ConstantStepSGD(learningRate = 0.1, model=model)
-    val learner = new LocalVarSGD(model)
+    val learner = new ConstantStepSGD(learningRate = 0.1, model=model)
+    //val learner = new LocalVarSGD(model)
 
     val scaler = new Scaler
     for (((target, rawFtrs), i) <- slrn.io.CreditCard.examples(io.Source.fromFile("datasets/creditcard.csv")).zipWithIndex) {
       val ftrs = ApplyAll(List(scaler, UnitVector))(rawFtrs)
 
-      if (i > 150000) {
+      if (i > 5000) {
         val p = model.predict(ftrs)
         pw.println(s"$target\t${p}")
       } else {
