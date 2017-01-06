@@ -2,7 +2,7 @@ package slrn.runner
 
 import java.io.{FileOutputStream, PrintWriter}
 
-import slrn.feature.{CategoricFeature, Feature}
+import slrn.feature.{DiscreteFeature, Feature}
 import slrn.weights._
 import slrn.model.{ConstantStepSGD, LocalVarSGD, LogisticPrediction, MiniBatch}
 import slrn.transform.{ApplyAll, Scaler, UnitVector}
@@ -38,7 +38,7 @@ object RunSimpleSGD {
       }
 
       val segmentFtrArray = ftrs.filter(_.name == "cust_appd").toArray
-      val segment = segmentFtrArray(0).asInstanceOf[CategoricFeature].nominal
+      val segment = segmentFtrArray(0).asInstanceOf[DiscreteFeature].nominal
 
       val p = model.predict(ftrs)
 

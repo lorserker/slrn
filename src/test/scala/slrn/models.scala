@@ -9,13 +9,13 @@ class ModelTest extends FunSuite {
 
   val epsilon = 1e-9
 
-  val ftr1 = NumericFeature("num1")(2.0)
-  val ftr2 = NumericFeature("num2")(-1.0)
-  val red = CategoricFeature("color", "red")(1.0)
-  val green = CategoricFeature("color", "green")(1.0)
-  val blue = CategoricFeature("color", "blue")(1.0)
-  val bad = CategoricFeature("signal", "red")(1.0)
-  val good = CategoricFeature("signal", "green")(1.0)
+  val ftr1 = ContinuousFeature("num1")(2.0)
+  val ftr2 = ContinuousFeature("num2")(-1.0)
+  val red = DiscreteFeature("color", "red")(1.0)
+  val green = DiscreteFeature("color", "green")(1.0)
+  val blue = DiscreteFeature("color", "blue")(1.0)
+  val bad = DiscreteFeature("signal", "red")(1.0)
+  val good = DiscreteFeature("signal", "green")(1.0)
 
   val m = new VocabWeights(new VocabularyIndexer) with LogisticPrediction
   m(ftr1) = 2.0

@@ -14,11 +14,11 @@ package object io {
     val ftrs = cols.drop(1).map {
       case s if s.startsWith("n:") => {
         val (ftrname, ftrval) = splitFeature(s.drop(2))
-        NumericFeature(name = ftrname)(value = ftrval.toDouble)
+        ContinuousFeature(name = ftrname)(value = ftrval.toDouble)
       }
       case s if s.startsWith("c:") => {
         val (ftrname, ftrval) = splitFeature(s.drop(2))
-        CategoricFeature(name = ftrname, nominal = ftrval)(value = 1.0)
+        DiscreteFeature(name = ftrname, nominal = ftrval)(value = 1.0)
       }
     }.toSet[Feature]
     (label, ftrs)
@@ -38,7 +38,7 @@ package object io {
       val rows = for (line <- lines.drop(1)) yield {
         val cols = line.trim.split(",").map(_.trim)
         val target = Map("p" -> 1.0, "e" -> 0.0)(cols(0))
-        val ftrs = header.zip(cols).drop(1).map{ case (h, c) => CategoricFeature(name=h, nominal=c)(1.0) }.toSet[Feature]
+        val ftrs = header.zip(cols).drop(1).map{ case (h, c) => DiscreteFeature(name=h, nominal=c)(1.0) }.toSet[Feature]
         (target, ftrs)
       }
 
@@ -55,7 +55,7 @@ package object io {
         val cols = line.trim.split(",").map(_.trim)
         val target = Map("\"0\"" -> 0.0, "\"1\"" -> 1.0)(cols.last)
         val ftrs = for ((col, i) <- cols.drop(1).dropRight(1).zipWithIndex) yield {
-          NumericFeature(header(i+1))(col.toDouble)
+          ContinuousFeature(header(i+1))(col.toDouble)
         }
         (target, ftrs.toSet[Feature])
       }

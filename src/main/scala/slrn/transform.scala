@@ -27,7 +27,7 @@ class Scaler extends Transform {
 
   def apply(ftrs: Set[Feature]): Set[Feature] = {
     val scaledFtrs = ftrs.map {
-      case ftr@NumericFeature(name) =>
+      case ftr@ContinuousFeature(name) =>
         val result = if (stats contains ftr) {
           val mu = stats(ftr).mean
           Try(stats(ftr).variance) match {
