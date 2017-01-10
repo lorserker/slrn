@@ -6,7 +6,7 @@ import slrn.weights.Weights
 import collection.mutable
 
 
-class Sampler(targetRate: Double, biasFeatureSelect: Set[Feature] => Feature, decay: Double = 1e-5) {
+class Sampler(targetRate: Double, biasFeatureSelect: Set[Feature] => Feature, decay: Double = 1e-3) {
   require(targetRate > 0)
 
   val groupStats = mutable.Map[Feature, (Double, Double)]()

@@ -3,6 +3,7 @@ package slrn.runner
 import java.io.{FileOutputStream, PrintWriter}
 
 import slrn.feature.{DiscreteFeature, Feature}
+import slrn.metrics.NormalizedEntropy
 import slrn.weights._
 import slrn.model.{ConstantStepSGD, LocalVarSGD, LogisticPrediction, MiniBatch}
 import slrn.sampling.{PriorCorrectedWeights, Sampler}
@@ -11,11 +12,11 @@ import slrn.transform.{ApplyAll, Scaler, UnitVector}
 object RunSimpleSGD {
 
   def main(args: Array[String]): Unit = {
+    val predictionLogFNm = args(0)
+    println(predictionLogFNm)
 
     val outModelFnm = "weights.tsv"
-    val pw = new PrintWriter("prediction_raw.log")
-
-    val debugWriter = new PrintWriter("debug.tsv")
+    val pw = new PrintWriter(predictionLogFNm)
 
     val appdWeights = new VocabWeights(new VocabularyIndexer)
     val brandWeights = new VocabWeights(new VocabularyIndexer)
@@ -33,7 +34,9 @@ object RunSimpleSGD {
     val learner = new slrn.model.LocalVarSGD(model)
     //val learner = new MiniBatch(10, new slrn.model.LocalVarSGD(model))
 
-    val sampler = new Sampler(targetRate = 0.2, (ftrs: Set[Feature]) => ftrs.filter(_.name == "cust_appd").toSeq.head)
+    //val sampler = new Sampler(targetRate = 0.2, (ftrs: Set[Feature]) => ftrs.filter(_.name == "cust_appd").toSeq.head, 1e-3)
+
+    val normEnt = new NormalizedEntropy
 
     for (((label, ftrs), i) <- slrn.io.examples(scala.io.Source.stdin).zipWithIndex) {
       if (i % 100000 == 0) {
@@ -43,20 +46,23 @@ object RunSimpleSGD {
       val segmentFtrArray = ftrs.filter(_.name == "cust_appd").toArray
       val segment = segmentFtrArray(0).asInstanceOf[DiscreteFeature].nominal
 
-      //val p = model.predict(ftrs)
-      val p = (new PriorCorrectedWeights(weights=model, sampler=sampler) with LogisticPrediction).predict(ftrs)
+      val p = model.predict(ftrs)
+      //val p = (new PriorCorrectedWeights(weights=model, sampler=sampler) with LogisticPrediction).predict(ftrs)
 
-      pw.println(s"$label\t${p}\t${segment}")
+      normEnt.add(label.toInt, p)
 
-      //if (true) {
-      if (sampler((label, ftrs))) {
+      pw.println(s"$label\t${p}\t${normEnt.get}\t${segment}")
+
+      if (true) {
+      //if (sampler((label, ftrs))) {
         learner.learn(label, ftrs)
       }
 
     }
 
+    //println(sampler.groupStats)
+
     pw.close()
-    debugWriter.close()
   }
 }
 
