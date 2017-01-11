@@ -33,13 +33,13 @@ class Scaler extends Transform {
           Try(stats(ftr).variance) match {
             case Success(variance) => {
               val std = math.sqrt(variance)
-              if (std > 1e-3) Feature.withValue(ftr, (ftr.value - mu) / std) else Feature.withValue(ftr, mu)
+              if (std > 1e-3) Feature.withValue(ftr, (ftr.value - mu) / std) else Feature.withValue(ftr, 0.0)
             }
-            case _ => ftr
+            case _ => Feature.withValue(ftr, 0.0)
           }
         } else {
           stats(ftr) = new OnlineMeanStd
-          ftr
+          Feature.withValue(ftr, 0.0)
         }
         stats(ftr).add(ftr.value)
         result

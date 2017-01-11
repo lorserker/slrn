@@ -30,6 +30,6 @@ class SamplingTest extends FunSuite {
     val correction = sampler.correction(ContinuousFeature("bias")(0.0))
     val correctedPrediction = 1.0 / (1.0 + math.exp(-correction))
 
-    assert(correctedPrediction > 0.008 && correctedPrediction < 0.012)
+    assert(correctedPrediction > 0.005 && correctedPrediction < 0.015)
   }
 }

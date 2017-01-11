@@ -55,12 +55,12 @@ case class BlockWeights(weightBlocks: Array[Weights], defaultWeights: Weights, f
   // require that each weights object reference (in weightBlocks and defaultWeights) be unique
   val weightsNotUnique = {
     (weightBlocks.length == 1 && (defaultWeights eq weightBlocks(0))) ||
-    (for {
+    (weightBlocks.length > 1 && (for {
       i <- 0 until weightBlocks.length - 1
       j <- i + 1 until weightBlocks.length
     } yield {
       (defaultWeights eq weightBlocks(i)) || (defaultWeights eq weightBlocks(j)) || (weightBlocks(i) eq weightBlocks(j))
-    }).reduce(_ || _)
+    }).reduce(_ || _))
   }
   require(!weightsNotUnique, "all Weights objects in a BlockWeights should be unique")
 

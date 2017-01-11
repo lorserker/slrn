@@ -89,4 +89,19 @@ class NormalizedEntropyTest extends FunSuite {
     assert(ne.get > 1)
   }
 
+  test("NE should not crash when predictions are very close to 0 or 1") {
+    val ne = new NormalizedEntropy
+    val data = List(
+      (1, 1.0),
+      (0, 0.0),
+      (1, 0.999990000),
+      (0, 0.000000001),
+      (0, 0.000000001),
+      (1, 0.999999999)
+    )
+    for ((y, p) <- data) {
+      ne.add(y, p)
+    }
+  }
+
 }

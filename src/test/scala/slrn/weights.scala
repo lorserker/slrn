@@ -135,5 +135,7 @@ class WeightsTest extends FunSuite {
 
     // this should not throw any exception
     BlockWeights(Array(w1, w2), w3, (ftr: Feature) => 0)
+
+    BlockWeights(Array(w1), w2, (ftr: Feature) => 0)
   }
 }

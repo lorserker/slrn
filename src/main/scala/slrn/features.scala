@@ -18,4 +18,6 @@ object Feature {
       case DiscreteFeature(name, nominal) => DiscreteFeature(name, nominal)(v)
     }
   }
+
+  def bias = DiscreteFeature(name="_bias", nominal="")()
 }

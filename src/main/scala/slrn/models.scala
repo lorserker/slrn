@@ -9,10 +9,14 @@ trait Prediction {
 }
 
 trait LogisticPrediction extends Weights with Prediction {
-  def predict(ftrs: Set[Feature]): Double = 1.0 / (1.0 + math.exp(-dot(ftrs)))
+  override def predict(ftrs: Set[Feature]): Double = 1.0 / (1.0 + math.exp(-dot(ftrs)))
 }
 
-trait Gradient {
+trait DotPrediction extends Weights with Prediction {
+  override def predict(ftrs: Set[Feature]): Double = dot(ftrs)
+}
+
+trait Gradient{
   def gradient(ftr: Feature, trueValue: Double, predictedValue: Double): Double = (predictedValue - trueValue) * ftr.value
 }
 

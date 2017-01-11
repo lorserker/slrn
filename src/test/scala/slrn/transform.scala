@@ -2,6 +2,7 @@ package slrn.transform
 
 import slrn.transform._
 import org.scalatest.FunSuite
+import slrn.feature.{ContinuousFeature, Feature}
 
 import scala.util.{Failure, Try}
 
@@ -28,5 +29,21 @@ class TransformTest extends FunSuite {
     assert(onlineMeanStd.n == 1000)
     assert(math.abs(onlineMeanStd.mean - 7.0) < 0.1)
     assert(math.abs(Try(onlineMeanStd.variance).get - 1.0) < 0.1)
+  }
+
+  test("scaler should support invariant features") {
+    val scaler = new Scaler
+
+    for (i <- 1 to 1000) {
+      assert(scaler(Set[Feature](ContinuousFeature(name = "a")(1.0))).toSeq.head.value != Double.NaN)
+    }
+  }
+
+  test("large invariant features are scaled to 0") {
+    val scaler = new Scaler
+
+    for (i <- 1 to 1000) {
+      assert(scaler(Set[Feature](ContinuousFeature(name = "a")(1000.0))).toSeq.head.value == 0.0)
+    }
   }
 }

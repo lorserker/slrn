@@ -16,7 +16,7 @@ class NormalizedEntropy {
   def get(): Double = {
     val numerator = S/n
     val p = avgRate
-    val denominator = p * log2(p) + (1 - p) * log2(1 - p)
+    val denominator = if (nPos == 0 || nNeg == 0) -1.0 else p * log2(p) + (1 - p) * log2(1 - p)
     numerator / denominator
   }
 
@@ -24,7 +24,7 @@ class NormalizedEntropy {
     nPos += target
     nNeg += (1 - target)
 
-    if (target == 0) {
+    if (math.abs(target - 0.0) < 1e-6) {
       S += (1 - target) * log2(1 - prediction)
     } else {
       S += target * log2(prediction)
