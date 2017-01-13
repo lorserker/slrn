@@ -49,7 +49,7 @@ object RunSimpleSGD {
       val p = model.predict(ftrs)
       //val p = (new PriorCorrectedWeights(weights=model, sampler=sampler) with LogisticPrediction).predict(ftrs)
 
-      normEnt.add(label.toInt, p)
+      normEnt.add(label, p)
 
       pw.println(s"$label\t${p}\t${normEnt.get}\t${segment}")
 

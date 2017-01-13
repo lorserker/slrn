@@ -3,6 +3,7 @@ package slrn.examples
 import java.io.PrintWriter
 
 import slrn.feature.{ContinuousFeature, DiscreteFeature, Feature}
+import slrn.metrics.{NormalizedEntropy, RootMeanSquareError}
 import slrn.model.{DotPrediction, LogisticPrediction}
 import slrn.transform.Scaler
 import slrn.weights._
@@ -24,6 +25,8 @@ object AirlineDelayClassificationExample {
     //val learner = new slrn.model.ConstantStepSGD(learningRate=0.01, model=model)
     val learner = new slrn.model.LocalVarSGD(model)
 
+    val metric = new NormalizedEntropy
+
     val scale = new Scaler
 
     for ((y, unscaledFtrs) <- Data.exampleIterator()) {
@@ -32,7 +35,9 @@ object AirlineDelayClassificationExample {
 
       val p = model.predict(ftrs)
 
-      pw.println(s"$target\t$p")
+      metric.add(target, p)
+
+      pw.println(s"$target\t$p\t${metric.get}")
 
       learner.learn(target, ftrs)
     }
@@ -58,6 +63,8 @@ object AirlineDelayRegressionExample {
     //val learner = new slrn.model.ConstantStepSGD(learningRate=0.01, model=model)
     val learner = new slrn.model.LocalVarSGD(model)
 
+    val metric = new RootMeanSquareError
+
     val scale = new Scaler
 
     for ((target, unscaledFtrs) <- Data.exampleIterator()) {
@@ -65,7 +72,9 @@ object AirlineDelayRegressionExample {
 
       val p = model.predict(ftrs)
 
-      pw.println(s"$target\t$p")
+      metric.add(target, p)
+
+      pw.println(s"$target\t$p\t${metric.get}")
 
       learner.learn(target, ftrs)
     }
@@ -94,7 +103,7 @@ object Data {
       (target, Set[Feature](
         DiscreteFeature(name="orig", nominal=orig)(),
         DiscreteFeature(name="dest", nominal=dest)(),
-        DiscreteFeature(name="orig-dest", nominal=s"$orig-$dest")(),
+        Feature.combine(DiscreteFeature(name="orig", nominal=orig)(), DiscreteFeature(name="dest", nominal=dest)()),
         ContinuousFeature(name="distance")(value=distance),
         ContinuousFeature(name="depart")(value=departureTime),
         DiscreteFeature(name="carrier", nominal=carrier)(),

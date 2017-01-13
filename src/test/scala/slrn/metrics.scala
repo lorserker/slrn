@@ -105,3 +105,39 @@ class NormalizedEntropyTest extends FunSuite {
   }
 
 }
+
+class RootMeanSquareErrorTest extends FunSuite {
+
+  test("RMSE should be initially 0") {
+    val rmse = new RootMeanSquareError
+    assert(rmse.get == 0.0)
+  }
+
+  test("RMSE of perfect prediction should be 0") {
+    val rmse = new RootMeanSquareError
+    val data = List(
+      (10.0, 10.0),
+      (0.0, 0.0),
+      (2.0, 2.0),
+      (-7.0, -7.0)
+    )
+    for ((y, p) <- data) {
+      rmse.add(y, p)
+    }
+    assert(math.abs(rmse.get - 0.0) < 1e-6)
+  }
+
+  test("RMSE should give the correct result") {
+    val rmse = new RootMeanSquareError
+    val data = List(
+      (1.0, 1.0),
+      (2.0, 3.0),
+      (-5.0, -3.0),
+      (6.0, 3.0)
+    )
+    for ((y, p) <- data) {
+      rmse.add(y, p)
+    }
+    assert(math.abs(rmse.get - 1.87082869339) < 1e-6)
+  }
+}
