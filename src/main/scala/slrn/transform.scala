@@ -10,7 +10,7 @@ trait Transform {
   def apply(ftrs: Set[Feature]): Set[Feature]
 }
 
-object UnitVector extends Transform {
+object UnitLength extends Transform {
   def apply(ftrs: Set[Feature]): Set[Feature] = {
     val s = math.sqrt(ftrs.map(ftr => ftr.value * ftr.value).sum)
     if (s > 0) {

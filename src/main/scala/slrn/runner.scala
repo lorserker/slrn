@@ -7,7 +7,7 @@ import slrn.metrics.NormalizedEntropy
 import slrn.weights._
 import slrn.model.{ConstantStepSGD, LocalVarSGD, LogisticPrediction, MiniBatch}
 import slrn.sampling.{PriorCorrectedWeights, Sampler}
-import slrn.transform.{ApplyAll, Scaler, UnitVector}
+import slrn.transform.{ApplyAll, Scaler, UnitLength}
 
 object RunSimpleSGD {
 
@@ -105,7 +105,7 @@ object CreditCardExample {
 
     val scaler = new Scaler
     for (((target, rawFtrs), i) <- slrn.io.CreditCard.examples(io.Source.fromFile("datasets/creditcard.csv")).zipWithIndex) {
-      val ftrs = ApplyAll(List(scaler, UnitVector))(rawFtrs)
+      val ftrs = ApplyAll(List(scaler, UnitLength))(rawFtrs)
 
       if (i > 5000) {
         val p = model.predict(ftrs)
