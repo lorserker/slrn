@@ -5,7 +5,7 @@ import java.io.PrintWriter
 import slrn.feature.{ContinuousFeature, DiscreteFeature, Feature}
 import slrn.metrics.{NormalizedEntropy, RootMeanSquareError}
 import slrn.model.{LinearPrediction, LogisticPrediction}
-import slrn.transform.Scaler
+import slrn.transform.{ApplyAll, Scaler, UnitLength}
 import slrn.weights._
 
 object AirlineDelayClassificationExample {
@@ -29,9 +29,9 @@ object AirlineDelayClassificationExample {
 
     val scale = new Scaler
 
-    for ((y, unscaledFtrs) <- Data.exampleIterator()) {
+    for ((y, rawFtrs) <- Data.exampleIterator()) {
       val target = if (y > 60) 1.0 else 0.0
-      val ftrs = scale(unscaledFtrs)
+      val ftrs = ApplyAll(List(scale, UnitLength))(rawFtrs)
 
       val p = model.predict(ftrs)
 
@@ -67,8 +67,8 @@ object AirlineDelayRegressionExample {
 
     val scale = new Scaler
 
-    for ((target, unscaledFtrs) <- Data.exampleIterator()) {
-      val ftrs = scale(unscaledFtrs)
+    for ((target, rawFtrs) <- Data.exampleIterator()) {
+      val ftrs = ApplyAll(List(scale, UnitLength))(rawFtrs)
 
       val p = model.predict(ftrs)
 
