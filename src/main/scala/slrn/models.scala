@@ -12,7 +12,7 @@ trait LogisticPrediction extends Weights with Prediction {
   override def predict(ftrs: Set[Feature]): Double = 1.0 / (1.0 + math.exp(-dot(ftrs)))
 }
 
-trait DotPrediction extends Weights with Prediction {
+trait LinearPrediction extends Weights with Prediction {
   override def predict(ftrs: Set[Feature]): Double = dot(ftrs)
 }
 

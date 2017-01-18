@@ -4,7 +4,7 @@ import java.io.PrintWriter
 
 import slrn.feature.{ContinuousFeature, DiscreteFeature, Feature}
 import slrn.metrics.{NormalizedEntropy, RootMeanSquareError}
-import slrn.model.{DotPrediction, LogisticPrediction}
+import slrn.model.{LinearPrediction, LogisticPrediction}
 import slrn.transform.Scaler
 import slrn.weights._
 
@@ -58,7 +58,7 @@ object AirlineDelayRegressionExample {
     val model = new BlockWeights(
       Array[Weights](hashWeights),
       defaultWeights,
-      (ftr: Feature) => if (ftr.name == "orig-dest") 0 else -1) with DotPrediction
+      (ftr: Feature) => if (ftr.name == "orig-dest") 0 else -1) with LinearPrediction
 
     //val learner = new slrn.model.ConstantStepSGD(learningRate=0.01, model=model)
     val learner = new slrn.model.LocalVarSGD(model)
