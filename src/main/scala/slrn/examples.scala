@@ -103,7 +103,7 @@ object Data {
       (target, Set[Feature](
         DiscreteFeature(name="orig", nominal=orig)(),
         DiscreteFeature(name="dest", nominal=dest)(),
-        Feature.combine(DiscreteFeature(name="orig", nominal=orig)(), DiscreteFeature(name="dest", nominal=dest)()),
+        Feature.cross(DiscreteFeature(name="orig", nominal=orig)(), DiscreteFeature(name="dest", nominal=dest)()),
         ContinuousFeature(name="distance")(value=distance),
         ContinuousFeature(name="depart")(value=departureTime),
         DiscreteFeature(name="carrier", nominal=carrier)(),

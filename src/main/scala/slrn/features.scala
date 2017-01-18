@@ -21,15 +21,15 @@ object Feature {
 
   def bias = DiscreteFeature(name="_bias", nominal="")()
 
-  def combine(name: String, ftrs: DiscreteFeature*): DiscreteFeature = {
+  def cross(name: String, ftrs: DiscreteFeature*): DiscreteFeature = {
     val combinedNominal = ftrs.map(_.nominal).mkString("|")
     val combinedValue = ftrs.map(_.value).product
 
     DiscreteFeature(name, combinedNominal)(combinedValue)
   }
 
-  def combine(ftrs: DiscreteFeature*): DiscreteFeature = {
+  def cross(ftrs: DiscreteFeature*): DiscreteFeature = {
     val combinedName = ftrs.map(_.name).mkString("|")
-    combine(combinedName, ftrs:_*)
+    cross(combinedName, ftrs:_*)
   }
 }
