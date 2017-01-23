@@ -51,7 +51,7 @@ object RunSimpleSGD {
 
       normEnt.add(label, p)
 
-      pw.println(s"$label\t${p}\t${normEnt.get}\t${segment}")
+      pw.println(s"$label\t${p}\t${normEnt.apply}\t${segment}")
 
       if (true) {
       //if (sampler((label, ftrs))) {

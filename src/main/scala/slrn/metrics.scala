@@ -2,7 +2,7 @@ package slrn.metrics
 
 trait Metric {
   def add(target: Double, prediction: Double): Unit
-  def get(): Double
+  def apply(): Double
 }
 
 /**
@@ -18,7 +18,7 @@ class NormalizedEntropy extends Metric {
 
   def avgRate = nPos.toDouble / (nPos + nNeg)
 
-  override def get(): Double = {
+  override def apply(): Double = {
     val numerator = S/n
     val p = avgRate
     val denominator = if (nPos == 0 || nNeg == 0) -1.0 else p * log2(p) + (1 - p) * log2(1 - p)
@@ -46,7 +46,7 @@ class RootMeanSquareError extends Metric {
   private var n = 0
   private var sqErrSum = 0.0
 
-  override def get(): Double = if (n > 0) math.sqrt(sqErrSum / n) else 0.0
+  override def apply(): Double = if (n > 0) math.sqrt(sqErrSum / n) else 0.0
 
   override def add(target: Double, prediction: Double): Unit = {
     n += 1

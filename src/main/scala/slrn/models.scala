@@ -43,6 +43,17 @@ class ConstantStepSGD(learningRate: Double, val model: Weights with Prediction) 
   }
 }
 
+object Model {
+
+  def regression(): Weights with Prediction = new VocabWeights(new VocabularyIndexer) with LinearPrediction
+  def regression(nDimensions: Int): Weights with Prediction = new HashWeights(new HashIndexer(nDimensions)) with LinearPrediction
+
+  def classification(): Weights with Prediction = new VocabWeights(new VocabularyIndexer) with LogisticPrediction
+  def classification(nDimensions: Int): Weights with Prediction = new HashWeights(new HashIndexer(nDimensions)) with LogisticPrediction
+
+}
+
+
 class MiniBatch(batchSize: Int, val learner: Learner) extends Learner with Gradient {
   require(batchSize > 0)
 

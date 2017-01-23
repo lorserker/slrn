@@ -18,7 +18,7 @@ class NormalizedEntropyTest extends FunSuite {
       ne.add(y, p)
     }
 
-    assert(math.abs(1.0 - ne.get()) < 1e-6)
+    assert(math.abs(1.0 - ne.apply()) < 1e-6)
   }
 
   test("NE of perfect predition should be 0") {
@@ -35,7 +35,7 @@ class NormalizedEntropyTest extends FunSuite {
       ne.add(y, p)
     }
 
-    assert(math.abs(0.0 - ne.get) < 1e-6)
+    assert(math.abs(0.0 - ne.apply) < 1e-6)
   }
 
   test("NE of completely wrong prediction should be high") {
@@ -52,7 +52,7 @@ class NormalizedEntropyTest extends FunSuite {
       ne.add(y, p)
     }
 
-    assert(ne.get > 1.0)
+    assert(ne.apply > 1.0)
   }
 
   test("NE of good prediction should be low") {
@@ -69,7 +69,7 @@ class NormalizedEntropyTest extends FunSuite {
       ne.add(y, p)
     }
 
-    assert(ne.get < 1.0)
+    assert(ne.apply < 1.0)
   }
 
   test("NE of good but uncalibrated prediction should be high") {
@@ -86,7 +86,7 @@ class NormalizedEntropyTest extends FunSuite {
       ne.add(y, p)
     }
 
-    assert(ne.get > 1)
+    assert(ne.apply > 1)
   }
 
   test("NE should not crash when predictions are very close to 0 or 1") {
@@ -110,7 +110,7 @@ class RootMeanSquareErrorTest extends FunSuite {
 
   test("RMSE should be initially 0") {
     val rmse = new RootMeanSquareError
-    assert(rmse.get == 0.0)
+    assert(rmse.apply == 0.0)
   }
 
   test("RMSE of perfect prediction should be 0") {
@@ -124,7 +124,7 @@ class RootMeanSquareErrorTest extends FunSuite {
     for ((y, p) <- data) {
       rmse.add(y, p)
     }
-    assert(math.abs(rmse.get - 0.0) < 1e-6)
+    assert(math.abs(rmse.apply - 0.0) < 1e-6)
   }
 
   test("RMSE should give the correct result") {
@@ -138,6 +138,6 @@ class RootMeanSquareErrorTest extends FunSuite {
     for ((y, p) <- data) {
       rmse.add(y, p)
     }
-    assert(math.abs(rmse.get - 1.87082869339) < 1e-6)
+    assert(math.abs(rmse.apply - 1.87082869339) < 1e-6)
   }
 }
