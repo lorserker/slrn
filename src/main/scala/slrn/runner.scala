@@ -29,9 +29,9 @@ object RunSimpleSGD {
     //val model = new slrn.model.DictionaryWeights()
     val model = new VocabWeights(new VocabularyIndexer) with LogisticPrediction
     //val model = new HashWeights(new HashIndexer(100000)) with LogisticPrediction
-    //val learner = new slrn.model.ConstantStepSGD(learningRate=0.03, model=model)
+    val learner = new slrn.model.ConstantStepSGD(learningRate=0.03, model=model)
     //val learner = new MiniBatch(10, new slrn.model.ConstantStepSGD(learningRate=0.1, model=model))
-    val learner = new slrn.model.LocalVarSGD(model)
+    //val learner = new slrn.model.LocalVarSGD(model)
     //val learner = new MiniBatch(10, new slrn.model.LocalVarSGD(model))
 
     //val sampler = new Sampler(targetRate = 0.2, (ftrs: Set[Feature]) => ftrs.filter(_.name == "cust_appd").toSeq.head, 1e-3)
