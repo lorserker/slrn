@@ -42,7 +42,19 @@ val coffee = Feature.cross(
 ```
 
 ### Feature Vectors
-Feature vectors are implemented simply as `Set[Feature]`. This way the user of the library doesn't have to know or keep track of any of the following: how many dimensions the feature space has, what index (coordinate) a particular feature has in the feature vector. 
+Feature vectors are implemented simply as `Set[Feature]`. This way the user of the library doesn't have to know or keep track of any of the following: how many dimensions the feature space has, what index (coordinate) a particular feature has in the feature vector.
+
+```scala
+val featureVector = Set[Feature](
+  DiscreteFeature("cap-color", "brown")(),
+  DiscreteFeature("cap-shape", "bell")(),
+  DiscreteFeature("gill-size", "narrow")(),
+  DiscreteFeature("habitat", "forest")(),
+  ContinuousFeature("ring-number")(1),
+  ContinuousFeature("height")(12.5),
+  Feature.bias
+)
+```
 
 ## Prediction Models
 In general a prediction model is an object of type ```Weights with Prediction```. There are several implementations of the ```Weights``` trait and the ```Prediction``` trait.
