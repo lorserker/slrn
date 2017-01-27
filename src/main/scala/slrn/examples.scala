@@ -4,9 +4,8 @@ import java.io.PrintWriter
 
 import slrn.feature.{ContinuousFeature, DiscreteFeature, Feature}
 import slrn.metrics.{NormalizedEntropy, RootMeanSquareError}
-import slrn.model.{LinearPrediction, LogisticPrediction, Model}
-import slrn.transform.{ApplyAll, Scaler, UnitLength}
-import slrn.weights._
+import slrn.model._
+import slrn.transform.Scaler
 
 object AirlineDelayClassificationExample {
 
@@ -14,18 +13,9 @@ object AirlineDelayClassificationExample {
     val predictionLogFNm = args(0)
     val pw = new PrintWriter(predictionLogFNm)
 
-//    val defaultWeights = VocabWeights(new VocabularyIndexer)
-//    val hashWeights = HashWeights(new HashIndexer(10000))
-//
-//    val model = new BlockWeights(
-//      Array[Weights](hashWeights),
-//      defaultWeights,
-//      (ftr: Feature) => if (ftr.name == "orig-dest") 0 else -1) with LogisticPrediction
-
     val model = Model.classification()
 
-    //val learner = new slrn.model.ConstantStepSGD(learningRate=0.01, model=model)
-    val learner = new slrn.model.LocalVarSGD(model)
+    val learner = new ConstantStepSGD(learningRate=0.01, model=model)
 
     val metric = new NormalizedEntropy
 
@@ -54,18 +44,9 @@ object AirlineDelayRegressionExample {
     val predictionLogFNm = args(0)
     val pw = new PrintWriter(predictionLogFNm)
 
-//    val defaultWeights = VocabWeights(new VocabularyIndexer)
-//    val hashWeights = HashWeights(new HashIndexer(10000))
-//
-//    val model = new BlockWeights(
-//      Array[Weights](hashWeights),
-//      defaultWeights,
-//      (ftr: Feature) => if (ftr.name == "orig-dest") 0 else -1) with LinearPrediction
-
     val model = Model.regression()
 
-    //val learner = new slrn.model.ConstantStepSGD(learningRate=0.01, model=model)
-    val learner = new slrn.model.LocalVarSGD(model)
+    val learner = new ConstantStepSGD(learningRate=0.01, model=model)
 
     val metric = new RootMeanSquareError
 
