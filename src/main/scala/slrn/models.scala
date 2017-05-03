@@ -28,12 +28,65 @@ trait Learner {
   def updateModel(ftrGradients: Seq[(Feature, Double)])
 }
 
+trait BatchLearner {
+  def model: Weights with Prediction
+
+  def learn(labeledExamples: Array[(Double, Set[Feature])])
+
+  def updateModel(ftrGradients: Seq[(Feature, Double)])
+}
+
 class ConstantStepSGD(learningRate: Double, val model: Weights with Prediction) extends Learner with Gradient {
   require(learningRate > 0.0)
 
   override def learn(target: Double, ftrs: Set[Feature]): Unit = {
     val p = model.predict(ftrs)
     updateModel(for (ftr <- ftrs.toSeq) yield (ftr, gradient(ftr, target, p)))
+  }
+
+  override def updateModel(ftrGradients: Seq[(Feature, Double)]): Unit = {
+    for ((ftr, g) <- ftrGradients) {
+      model(ftr) = model(ftr) - learningRate * g
+    }
+  }
+}
+
+// implements gradient descent with a momentum term: http://distill.pub/2017/momentum/
+// if memory is set to 0, then the method degenerates to regular gradient descent
+class MomentumBatchLearner(learningRate: Double, memory: Double, iterations: Int, val model: Weights with Prediction) extends BatchLearner with Gradient {
+  require(learningRate > 0.0)
+  require(memory >= 0 && memory < 1)
+
+  override def learn(labeledExamples: Array[(Double, Set[Feature])]): Unit = {
+    val n = labeledExamples.length
+    require(n > 0)
+    var iter = 0
+    val avgGradient = mutable.Map[Feature, Double]()
+    while (iter < iterations) {
+      println(s"iter=$iter")
+      val ftrGradientSums = mutable.Map[Feature, Double]()
+      var i = 0
+      while (i < n) {
+        val (target, ftrs) = labeledExamples(i)
+        val p = model.predict(ftrs)
+        for (ftr <- ftrs.toSeq) {
+          ftrGradientSums(ftr) = ftrGradientSums.getOrElse(ftr, 0.0) + gradient(ftr, target, p)
+        }
+        i += 1
+      }
+      val nabla = ftrGradientSums.toSeq.map{ case (ftr, g) => (ftr, g / n)}
+      if (memory > 0) {
+        for ((ftr, g) <- nabla) {
+          avgGradient(ftr) = avgGradient.getOrElse(ftr, 0.0) * memory + g
+        }
+        updateModel(avgGradient.toSeq)
+      } else {
+        println("hey")
+        updateModel(nabla)
+      }
+      println(model(Feature.bias))
+      iter += 1
+    }
   }
 
   override def updateModel(ftrGradients: Seq[(Feature, Double)]): Unit = {
