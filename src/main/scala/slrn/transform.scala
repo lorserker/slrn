@@ -21,11 +21,42 @@ object UnitLength extends Transform {
   }
 }
 
+class BatchScaler(ftrSets: Array[Set[Feature]]) extends Transform {
+  
+  val ftrVals = ftrSets.flatMap(ftrs => {
+    ftrs.toSeq.filter(ftr => ftr match {
+      case ContinuousFeature(_) => true
+      case _ => false
+    }).map(ftr => (ftr, ftr.value))
+  }).groupBy(_._1).map{ case (ftr, ftrValSeq) => (ftr, ftrValSeq.map(_._2)) }
+
+  println(ftrVals.size)
+  
+  private val mean: Map[Feature, Double] = 
+    ftrVals.map{ case (ftr, values) => (ftr, values.sum / values.length) }.toMap
+
+  private val variance: Map[Feature, Double] =
+    ftrVals.map{ case (ftr, values) => (ftr, values.map(v => math.pow(mean(ftr) - v, 2)).sum / values.length) }
+  
+
+  override def apply(ftrs: Set[Feature]): Set[Feature] = {
+    ftrs.map {
+      case ftr@ContinuousFeature(name) => {
+        if (mean.contains(ftr) && variance.contains(ftr) && variance(ftr) > 1e-3)
+          Feature.withValue(ftr, (ftr.value - mean(ftr)) / math.sqrt(variance(ftr)))
+        else
+          Feature.withValue(ftr, 0.0)
+      }
+      case ftr => ftr
+    }
+  }
+}
+
 class Scaler extends Transform {
 
   private val stats: mutable.Map[Feature, OnlineMeanStd] = mutable.Map.empty
 
-  def apply(ftrs: Set[Feature]): Set[Feature] = {
+  override def apply(ftrs: Set[Feature]): Set[Feature] = {
     val scaledFtrs = ftrs.map {
       case ftr@ContinuousFeature(name) =>
         val result = if (stats contains ftr) {

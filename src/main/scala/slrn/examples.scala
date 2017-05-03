@@ -5,7 +5,7 @@ import java.io.PrintWriter
 import slrn.feature.{ContinuousFeature, DiscreteFeature, Feature}
 import slrn.metrics.{NormalizedEntropy, RootMeanSquareError}
 import slrn.model._
-import slrn.transform.Scaler
+import slrn.transform.{Scaler, BatchScaler}
 
 object AirlineDelayClassificationExample {
 
@@ -63,6 +63,54 @@ object AirlineDelayRegressionExample {
 
       learner.learn(target, ftrs)
     }
+
+    pw.close()
+  }
+}
+
+object AirlineBatchLearningExample {
+  def main(args: Array[String]): Unit = {
+    val predictionLogFNm = args(0)
+    val pw = new PrintWriter(predictionLogFNm)
+
+    val model = Model.classification()
+    //val model = Model.regression()
+
+    val learner = new MomentumBatchLearner(learningRate=0.1, memory=0.9, iterations=20, model=model)
+
+    val metric = new NormalizedEntropy
+    //val metric = new RootMeanSquareError
+
+    println("reading examples")
+
+    val nExamples = 100000
+    val thresholdLabel = (item: (Double, Set[Feature])) => (if (item._1 > 60) 1.0 else 0.0, item._2)
+    //val thresholdLabel = (item: (Double, Set[Feature])) => item
+
+    val labeledExamples = Data.exampleIterator().take(nExamples).map(thresholdLabel).toArray
+    val testExamples = Data.exampleIterator().drop(nExamples).take(nExamples).map(thresholdLabel).toArray
+    //val labeledExamples = Data.exampleIterator().take(100000).toArray
+
+    println("creating scaler")
+
+    val scale = new BatchScaler(labeledExamples.map(_._2))
+
+    println("scaling")
+
+    val scaledLabeledExamples = labeledExamples.map{ case (target, ftrs) => (target, scale(ftrs)) }
+    val scaledTestExamples = testExamples.map{ case (target, ftrs) => (target, scale(ftrs)) }
+
+    println("learning")
+
+    learner.learn(scaledLabeledExamples)
+
+    for((target, ftrs) <- scaledTestExamples) {
+      val p = model.predict(ftrs)
+      metric.add(target, p)
+      pw.println(s"$target\t$p\t${metric()}")
+    }
+
+    println(model(Feature.bias))
 
     pw.close()
   }
